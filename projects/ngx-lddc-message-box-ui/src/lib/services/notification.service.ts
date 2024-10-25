@@ -1,36 +1,32 @@
-import { AriaLivePoliteness } from '@angular/cdk/a11y';
-import { Direction } from '@angular/cdk/bidi';
-import { inject, Injectable, ViewContainerRef } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { MatSnackBar, MatSnackBarHorizontalPosition, MatSnackBarRef, MatSnackBarVerticalPosition, TextOnlySnackBar } from '@angular/material/snack-bar';
 import { map, Observable, of } from 'rxjs';
+import { NOTIFICATION_CONFIG_TOKEN, NotificationConfig } from '../lddc-notification.provider';
+import { Positions, SnackBarOptions, SnackOptions } from '../models/snackbar-options';
 
-export type Positions = "TOPRIGHT" | "TOPCENTER" | "TOPLEFT" | "BOTTOMRIGHT" | "BOTTOMCENTER" | "BOTTOMLEFT"
 
-type SnackBarOptions = {
-  announcementMessage?: string,
-  direction?: Direction,
-  duration?: number,
-  horizontalPosition?: MatSnackBarHorizontalPosition,
-  verticalPosition?: MatSnackBarVerticalPosition,
-  politeness?: AriaLivePoliteness,
-  panelClass?: string[],
-  viewContainerRef?: ViewContainerRef
-  data?: any,
-}
-
-export type SnackOptions = {
-  action?: string,
-  duration?: number,
-  position?: Positions,
-  panelClass?: string[]
-};
 
 @Injectable({
   providedIn: 'root'
 })
 export class NotificationService {
 
-  private readonly _snackBar = inject(MatSnackBar)
+  private readonly _snackBar = inject(MatSnackBar);
+  private readonly _config?: NotificationConfig = inject(NOTIFICATION_CONFIG_TOKEN);
+
+  constructor() {
+    if (this._config) {
+      if (this._config?.duration) {
+        this._baseSnackBarOption.duration = this._config?.duration;
+      }
+      if (this._config?.position) {
+        this._baseSnackBarOption.horizontalPosition = this.getHorizontalPosition(this._config?.position);
+        this._baseSnackBarOption.verticalPosition = this.getVerticalPosition(this._config?.position);
+        console.log('Horizontal:', this.getHorizontalPosition(this._config?.position))
+        console.log("Vertical: ", this.getVerticalPosition(this._config?.position))
+      }
+    }
+  }
 
   private _baseSnackBarOption: SnackBarOptions = {
     horizontalPosition: 'center',
@@ -82,7 +78,8 @@ export class NotificationService {
       case 'BOTTOMRIGHT':
       case 'BOTTOMCENTER':
       case 'BOTTOMLEFT':
-      default: return 'bottom';
+        return 'bottom'
+      default: return this._baseSnackBarOption.verticalPosition!;
     }
   }
 
@@ -101,7 +98,8 @@ export class NotificationService {
         return 'right';
       case 'TOPCENTER':
       case 'BOTTOMCENTER':
-      default: return 'center';
+        return 'center';
+      default: return this._baseSnackBarOption.horizontalPosition!;
     }
   }
 
@@ -127,11 +125,21 @@ export class NotificationService {
    * @returns Boolean Observable to indicate if action button was pressed (Return false if no action required)
    */
   notify(message: string, _options?: SnackOptions): Observable<boolean> {
+    const options = this.getSnackBarOptions(_options);
+    if (_options?.position) {
+      options.verticalPosition = this.getVerticalPosition(_options.position);
+      options.horizontalPosition = this.getHorizontalPosition(_options.position);
+      console.log('------------------------------------------')
+      console.log('Horizontal:', options?.horizontalPosition);
+      console.log("Vertical: ", options?.verticalPosition);
+      console.log(_options?.position)
+    }
     if (_options?.action) {
-      return this.snackBarAction(message, _options.action, this.getSnackBarOptions(_options));
+      return this.snackBarAction(message, _options.action, options);
     } else {
-      this.openSnackBar(message, '', this.getSnackBarOptions(_options))
+      this.openSnackBar(message, '', options)
       return of(false)
     }
   }
 }
+
