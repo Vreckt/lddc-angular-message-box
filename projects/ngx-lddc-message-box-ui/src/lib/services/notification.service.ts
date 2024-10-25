@@ -22,8 +22,6 @@ export class NotificationService {
       if (this._config?.position) {
         this._baseSnackBarOption.horizontalPosition = this.getHorizontalPosition(this._config?.position);
         this._baseSnackBarOption.verticalPosition = this.getVerticalPosition(this._config?.position);
-        console.log('Horizontal:', this.getHorizontalPosition(this._config?.position))
-        console.log("Vertical: ", this.getVerticalPosition(this._config?.position))
       }
     }
   }
@@ -129,10 +127,6 @@ export class NotificationService {
     if (_options?.position) {
       options.verticalPosition = this.getVerticalPosition(_options.position);
       options.horizontalPosition = this.getHorizontalPosition(_options.position);
-      console.log('------------------------------------------')
-      console.log('Horizontal:', options?.horizontalPosition);
-      console.log("Vertical: ", options?.verticalPosition);
-      console.log(_options?.position)
     }
     if (_options?.action) {
       return this.snackBarAction(message, _options.action, options);
