@@ -1,15 +1,19 @@
 <div id="dialog">
-  <h1 mat-dialog-title>MATERIAL - {{title}}</h1>
+  <h1 mat-dialog-title>{{title()}}</h1>
   <div mat-dialog-content id="modal__content">
-    <div id="modal__content__icon" [ngSwitch]="icon">
-      <mat-icon color="warn" *ngSwitchCase="'ERROR'">error</mat-icon>
-      <mat-icon color="accent" *ngSwitchCase="'WARNING'">warning</mat-icon>
-      <mat-icon color="primary" *ngSwitchCase="'INFO'">info</mat-icon>
-      <mat-icon color="primary" *ngSwitchCase="'QUESTION'">question_mark</mat-icon>
+    <div id="modal__content__icon">
+      @switch (icon()) {
+        @case ('ERROR') {<mat-icon color="warn">error</mat-icon>}
+        @case ('WARNING') {<mat-icon color="accent">warning</mat-icon>}
+        @case ('INFO') {<mat-icon color="primary">info</mat-icon>}
+        @case ('QUESTION') {<mat-icon color="primary">help</mat-icon>}
+      }
     </div>
-    <p>{{message}}</p> 
+    <p>{{message()}}</p> 
   </div>
-  <div mat-dialog-actions [align]="align" class="buttons__container">     
-    <button mat-flat-button *ngFor="let btn of buttons" [color]="btn.color" (click)="btnClicked(btn.data.label)">{{btn.data.label}}</button>
+  <div mat-dialog-actions [align]="'end'" class="buttons__container">
+    @for (btn of buttons(); track $index) {
+      <button mat-button (click)="btnClicked(btn.label)">{{btn.label}}</button>
+    }
   </div>
 </div>

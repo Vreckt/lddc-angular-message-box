@@ -1,4 +1,4 @@
-import { Component, inject, Inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { NgFor, NgIf, NgSwitch, NgSwitchCase } from '@angular/common';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
@@ -18,28 +18,25 @@ import { DialogType, JButton, OpenDialog } from '../../models/jbutton';
     MatIconModule
   ],
   templateUrl: './base-dialog.component.html',
-  styleUrls: ['./base-dialog.component.css']
+  styleUrls: ['./base-dialog.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class MaterialDialogComponent {
+  title = signal<string | undefined>('');
+  message = signal<string | undefined>('');
+  buttons = signal<JButton[]>([]);
 
-  title: string;
-  message: string;
-  buttons: {
-    data: JButton,
-    color: 'primary' | 'none' | 'accent' | 'warn'
-  }[] = [];
+  align = signal<'start' | 'center' | 'end' | undefined>('end');
+  icon = signal<DialogType>('ERROR');
 
-  icon!: DialogType;
-  align = 'end';
   readonly data: OpenDialog = inject(MAT_DIALOG_DATA)
   private readonly dialogRef = inject(MatDialogRef<MaterialDialogComponent>)
-  // @Inject(DIALOG_CONFIG_TOKEN) private config: DialogConfig
   constructor() {
-    this.title = this.data.input.title!;
-    this.message = this.data.input.message;
-    this.generateButtons(this.data.input.buttons as JButton[]);
-    this.icon = this.data.icon;
-    this.align = this.buttons.length > 1 ? 'end' : 'center';
+    this.title.set(this.data.input.title);
+    this.message.set(this.data.input.message);
+    this.buttons.set(this.generateButtons(this.data.input.buttons as JButton[]))
+    this.icon.set(this.data.icon);
+    this.align.set(this.buttons.length > 1 ? 'end' : 'end');
   }
 
   btnClicked(btn: string): void {
@@ -47,14 +44,8 @@ export class MaterialDialogComponent {
     this.closeDialog(btn);
   }
 
-  private generateButtons(buttons: JButton[]): void {
-    if (buttons && buttons.length > 0) {
-      buttons.forEach((btn, index) => {
-        this.buttons.push({ data: { label: btn.label }, color: index === 0 ? 'primary' : 'none' });
-      })
-    } else {
-      this.buttons.push({ data: { label: 'Ok' }, color: 'primary' });
-    }
+  private generateButtons(buttons: JButton[]): JButton[] {
+    return (buttons && buttons.length > 0) ? buttons : [JButton.Ok];
   }
 
   private closeDialog(clickedButton: string): void {
